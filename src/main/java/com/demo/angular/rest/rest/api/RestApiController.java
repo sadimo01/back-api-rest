@@ -67,7 +67,7 @@ public class RestApiController {
 	}
 
 	@GetMapping("/download/{type}")
-	public ResponseEntity<InputStreamResource> createAndDeliverFile(String type) throws IOException {
+	public ResponseEntity<InputStreamResource> createAndDeliverFile(@PathVariable String type) throws IOException {
 		List<?> list = findList(type);	
 		File file = CreateExcel.createFile("demoExcel.xlsx", list);
 		ByteArrayInputStream in = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
