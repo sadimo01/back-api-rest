@@ -66,10 +66,9 @@ public class RestApiController {
 
 	}
 
-	@GetMapping("/download")
-	public ResponseEntity<InputStreamResource> createAndDeliverFile() throws IOException {
-
-		List<Model> list = Arrays.asList(model1, model2, model3);
+	@GetMapping("/download/{type}")
+	public ResponseEntity<InputStreamResource> createAndDeliverFile(String type) throws IOException {
+		List<?> list = findList(type);	
 		File file = CreateExcel.createFile("demoExcel.xlsx", list);
 		ByteArrayInputStream in = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
 		return ResponseEntity.ok().contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
@@ -87,5 +86,28 @@ public class RestApiController {
 						ContentDisposition.attachment().filename("report.pdf").build().toString())
 				.body(resource);
 	}
+	
+	
+	private List<?> findList(String type)
+	{
+		List<?> data = null;
+		switch (type) {
+		case "Action":
+			data = Arrays.asList(model1, model2, model3);
+			break;
+		case "Select":
+			data = Arrays.asList(new Person("SADIK", "Mohamed"), new Person("Golaire", "Thomas"));
+			break;
+		case "Agregation":
+			data = Arrays.asList(new Adresse("Chaussée de Louvain", 214L, "Woluwe Saint Lambet"),
+					new Adresse("Chaussée de la Hulpe", 177L, "Watermael-Boitsfort"));
+			break;
+		default:
+			data = new ArrayList<>();
+			break;
+		}
+		return data;
+	}
+    	
 
 }

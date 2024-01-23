@@ -16,6 +16,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.demo.angular.rest.rest.api.Model;
+import com.demo.angular.rest.rest.api.Person;
 
 public class CreateExcel {
 
@@ -25,7 +26,7 @@ public class CreateExcel {
 		throw new IllegalStateException("Utility class");
 	}
 
-	public static File createFile(final String fileName, final List<Model> models) throws IOException {
+	public static File createFile(final String fileName, final List<?> models) throws IOException {
 		File resultFile = null;
 		try {
 			Path repertoireTemporaire = Files.createTempDirectory("liste-model");
@@ -40,13 +41,19 @@ public class CreateExcel {
 			XSSFSheet spreadsheet = workbook.createSheet("List of Models");
 			int countNumberLine = 0;
 
-			addHeader(spreadsheet, countNumberLine++); 
+			addHeader(spreadsheet, countNumberLine++);
 
-			for (Model m : models) {
+			for (Object m : models) {
 				XSSFRow line = spreadsheet.createRow(countNumberLine++);
 
-				addCell(line, 0, m.getCode());
-				addCell(line, 1, m.getLibelle());
+				if (m instanceof Model model) {
+					addCell(line, 0,model.getCode());
+					addCell(line, 1, model.getLibelle());
+				}
+				if (m instanceof Person p) {
+					addCell(line, 0, p.getNom());
+					addCell(line, 1, p.getPrenom());
+				}
 			}
 			workbook.write(stream);
 			return resultFile;
@@ -59,8 +66,8 @@ public class CreateExcel {
 
 	private static void addHeader(XSSFSheet spreadsheet, int countNumberLine) {
 		XSSFRow line = spreadsheet.createRow(countNumberLine);
-		addCell(line, 0, "code");
-		addCell(line, 1, "description");
+		addCell(line, 0, "Column1");
+		addCell(line, 1, "Column 2");
 
 	}
 
