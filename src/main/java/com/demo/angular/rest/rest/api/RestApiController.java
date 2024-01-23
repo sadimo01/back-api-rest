@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,15 +19,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.demo.angular.rest.rest.util.CreateExcel;
 import com.demo.angular.rest.rest.util.ReportUtil;
-
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.repo.Resource;
 
 @RestController
 @RequestMapping
@@ -47,9 +44,26 @@ public class RestApiController {
 
 	}
 
-	@GetMapping("/all")
-	public List<Model> findAll() {
-		return Arrays.asList(model1, model2, model3);
+	@GetMapping("/all/{type}")
+	public List<?> findAll(@PathVariable String type) {
+		List<?> data = null;		
+		switch (type) {
+		case "Action":
+			data = Arrays.asList(model1, model2, model3);
+			break;
+		case "Select":
+			data = Arrays.asList(new Person("SADIK", "Mohamed"), new Person("Golaire", "Thomas"));
+			break;
+		case "Agregation":
+			data = Arrays.asList(new Adresse("Chaussée de Louvain", 214L, "Woluwe Saint Lambet"),
+					new Adresse("Chaussée de la Hulpe", 177L, "Watermael-Boitsfort"));
+			break;
+		default:
+			data = new ArrayList<>();
+			break;
+		}
+		return data;
+
 	}
 
 	@GetMapping("/download")
@@ -69,8 +83,7 @@ public class RestApiController {
 		reportContent = ReportUtil.getItemReport(Arrays.asList(model1, model2, model3), "pdf");
 		ByteArrayResource resource = new ByteArrayResource(reportContent);
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
-				.contentLength(resource.contentLength())
-				.header(HttpHeaders.CONTENT_DISPOSITION,
+				.contentLength(resource.contentLength()).header(HttpHeaders.CONTENT_DISPOSITION,
 						ContentDisposition.attachment().filename("report.pdf").build().toString())
 				.body(resource);
 	}
