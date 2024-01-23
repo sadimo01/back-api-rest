@@ -46,7 +46,23 @@ public class RestApiController {
 
 	@GetMapping("/all/{type}")
 	public List<?> findAll(@PathVariable String type) {
-		return findAll(type);
+		List<?> data = null;
+		switch (type) {
+		case "Action":
+			data = Arrays.asList(model1, model2, model3);
+			break;
+		case "Select":
+			data = Arrays.asList(new Person("SADIK", "Mohamed"), new Person("Golaire", "Thomas"));
+			break;
+		case "Agregation":
+			data = Arrays.asList(new Adresse("Chaussée de Louvain", 214L, "Woluwe Saint Lambet"),
+					new Adresse("Chaussée de la Hulpe", 177L, "Watermael-Boitsfort"));
+			break;
+		default:
+			data = new ArrayList<>();
+			break;
+		}
+		return data;
 
 	}
 
