@@ -46,7 +46,7 @@ public class RestApiController {
 
 	@GetMapping("/all/{type}")
 	public List<?> findAll(@PathVariable String type) {
-		List<?> data = null;		
+		List<?> data = null;
 		switch (type) {
 		case "Action":
 			data = Arrays.asList(model1, model2, model3);
