@@ -46,29 +46,13 @@ public class RestApiController {
 
 	@GetMapping("/all/{type}")
 	public List<?> findAll(@PathVariable String type) {
-		List<?> data = null;
-		switch (type) {
-		case "Action":
-			data = Arrays.asList(model1, model2, model3);
-			break;
-		case "Select":
-			data = Arrays.asList(new Person("SADIK", "Mohamed"), new Person("Golaire", "Thomas"));
-			break;
-		case "Agregation":
-			data = Arrays.asList(new Adresse("Chaussée de Louvain", 214L, "Woluwe Saint Lambet"),
-					new Adresse("Chaussée de la Hulpe", 177L, "Watermael-Boitsfort"));
-			break;
-		default:
-			data = new ArrayList<>();
-			break;
-		}
-		return data;
+		return findAll(type);
 
 	}
 
 	@GetMapping("/download/{type}")
 	public ResponseEntity<InputStreamResource> createAndDeliverFile(@PathVariable String type) throws IOException {
-		List<?> list = findList(type);	
+		List<?> list = findList(type);
 		File file = CreateExcel.createFile("demoExcel.xlsx", list);
 		ByteArrayInputStream in = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
 		return ResponseEntity.ok().contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
@@ -76,20 +60,19 @@ public class RestApiController {
 
 	}
 
-	@GetMapping("/pdf")
-	public ResponseEntity<ByteArrayResource> getItemReport() {
+	@GetMapping("/pdf/{type}")
+	public ResponseEntity<ByteArrayResource> getItemReport(@PathVariable String type) {
+		List<?> list = findList(type);
 		byte[] reportContent;
-		reportContent = ReportUtil.getItemReport(Arrays.asList(model1, model2, model3), "pdf");
+		reportContent = ReportUtil.getItemReport(list, "pdf",type);
 		ByteArrayResource resource = new ByteArrayResource(reportContent);
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
 				.contentLength(resource.contentLength()).header(HttpHeaders.CONTENT_DISPOSITION,
 						ContentDisposition.attachment().filename("report.pdf").build().toString())
 				.body(resource);
 	}
-	
-	
-	private List<?> findList(String type)
-	{
+
+	private List<?> findList(String type) {
 		List<?> data = null;
 		switch (type) {
 		case "Action":
@@ -108,6 +91,5 @@ public class RestApiController {
 		}
 		return data;
 	}
-    	
 
 }

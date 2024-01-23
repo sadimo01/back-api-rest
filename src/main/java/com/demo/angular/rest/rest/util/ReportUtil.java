@@ -19,39 +19,52 @@ import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.engine.util.JRSaver;
 
 public class ReportUtil {
-	
-	public static  byte[] getItemReport(List<?> items, String format) {
-	    JasperReport jasperReport;
 
-	    try {
-	      jasperReport = (JasperReport)
-	          JRLoader.loadObject(ResourceUtils.getFile("report.jasper"));
-	    } catch (FileNotFoundException | JRException e) {
-	      try {
-	        File file = ResourceUtils.getFile("classpath:reports/report.jrxml");
-	        jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
-	        JRSaver.saveObject(jasperReport, "report.jasper");
-	      } catch (FileNotFoundException | JRException ex) {
-	        throw new RuntimeException(e);
-	      }
-	    }
+	public static byte[] getItemReport(List<?> items, String format, String type) {
+		JasperReport jasperReport;
+		String path = "";
+		String jasper = "";
+		switch (type) {
+		case "Action" -> {
+			path = "classpath:reports/report.jrxml";
+			jasper = "report.jasper";
+		}
+		case "Select" -> {
+			path = "classpath:reports/reportPerson.jrxml";
+			jasper = "reportP.jasper";
+		}
+		default -> throw new RuntimeException("Unknown report format");
+		}
 
-	    JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(items);
-	    Map<String, Object> parameters = new HashMap<>();
-	    parameters.put("title", "Item Report");
-	    JasperPrint jasperPrint = null;
-	    byte[] reportContent;
+		try {
+			jasperReport = (JasperReport) JRLoader.loadObject(ResourceUtils.getFile(jasper));
+		} catch (FileNotFoundException | JRException e) {
+			try {
 
-	    try {
-	      jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
-	      switch (format) {
-	        case "pdf" -> reportContent = JasperExportManager.exportReportToPdf(jasperPrint);
-	        case "xml" -> reportContent = JasperExportManager.exportReportToXml(jasperPrint).getBytes();
-	        default -> throw new RuntimeException("Unknown report format");
-	      }
-	    } catch (JRException e) {
-	      throw new RuntimeException(e);
-	    }
-	    return reportContent;
-	  }
+				File file = ResourceUtils.getFile(path);
+				jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+				JRSaver.saveObject(jasperReport, jasper);
+			} catch (FileNotFoundException | JRException ex) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(items);
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("title", "Item Report");
+		JasperPrint jasperPrint = null;
+		byte[] reportContent;
+
+		try {
+			jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+			switch (format) {
+			case "pdf" -> reportContent = JasperExportManager.exportReportToPdf(jasperPrint);
+			case "xml" -> reportContent = JasperExportManager.exportReportToXml(jasperPrint).getBytes();
+			default -> throw new RuntimeException("Unknown report format");
+			}
+		} catch (JRException e) {
+			throw new RuntimeException(e);
+		}
+		return reportContent;
+	}
 }
