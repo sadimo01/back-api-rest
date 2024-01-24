@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.demo.angular.rest.rest.util.CreateExcel;
 import com.demo.angular.rest.rest.util.ReportUtil;
 
+import net.sf.jasperreports.engine.JasperExportManager;
+
 @RestController
 @RequestMapping
 @CrossOrigin(origins = "*")
@@ -78,9 +80,14 @@ public class RestApiController {
 
 	@GetMapping("/pdf/{type}")
 	public ResponseEntity<ByteArrayResource> getItemReport(@PathVariable String type) {
-		List<?> list = findList(type);
+		List<Model> models = Arrays.asList(model1, model2, model3);		
+		List<Person> persons = Arrays.asList(new Person("SADIK", "Mohamed"), new Person("Golaire", "Thomas"));
 		byte[] reportContent;
-		reportContent = ReportUtil.getItemReport(list, "pdf",type);
+		switch (type) {
+		case "Action" -> reportContent = ReportUtil.getItemReport1(models, "pdf");
+		case "Select" -> reportContent = ReportUtil.getItemReport(persons, "pdf");
+		default -> throw new RuntimeException("Unknown report format");
+		}
 		ByteArrayResource resource = new ByteArrayResource(reportContent);
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
 				.contentLength(resource.contentLength()).header(HttpHeaders.CONTENT_DISPOSITION,

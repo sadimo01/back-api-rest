@@ -21,7 +21,7 @@
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{renom}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{prenom}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
