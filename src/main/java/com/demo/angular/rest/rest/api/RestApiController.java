@@ -84,8 +84,8 @@ public class RestApiController {
 		List<Person> persons = Arrays.asList(new Person("SADIK", "Mohamed"), new Person("Golaire", "Thomas"));
 		byte[] reportContent;
 		switch (type) {
-		case "Action" -> reportContent = ReportUtil.getItemReport1(models, "pdf");
-		case "Select" -> reportContent = ReportUtil.getItemReport(persons, "pdf");
+		case "Action" -> reportContent = ReportUtil.getItemReport(models, "pdf","classpath:reports/report.jrxml","report.jasper");
+		case "Select" -> reportContent = ReportUtil.getItemReport(persons, "pdf","classpath:reports/report-person.jrxml","report-person.jasper");
 		default -> throw new RuntimeException("Unknown report format");
 		}
 		ByteArrayResource resource = new ByteArrayResource(reportContent);
