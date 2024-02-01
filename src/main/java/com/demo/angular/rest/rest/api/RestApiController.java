@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
@@ -35,15 +36,10 @@ import net.sf.jasperreports.engine.JasperExportManager;
 @CrossOrigin(origins = "*")
 public class RestApiController {
 
-
-
 	@GetMapping("/excel/{type}/{data}")
-	public ResponseEntity<InputStreamResource> createAndDeliverFile(@PathVariable String type,@PathVariable String data) throws IOException {
-		 List<Model> models=new ArrayList<>();
-	     if(Character.isDigit(data.charAt(0)))
-	     {
-	    models=Arrays.asList(new Model("Matricule", data));	
-	     }
+	public ResponseEntity<InputStreamResource> createAndDeliverFile(@PathVariable String type,
+			@PathVariable String data) throws IOException {
+		List<Model> models = findDatas(data);
 		File file = CreateExcel.createFile("demoExcel.xlsx", models);
 		ByteArrayInputStream in = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
 		return ResponseEntity.ok().contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
@@ -52,16 +48,15 @@ public class RestApiController {
 	}
 
 	@GetMapping("/pdf/{type}/{data}")
-	public ResponseEntity<ByteArrayResource> getItemReport(@PathVariable String type,@PathVariable String data) {
-		 byte[] reportContent;
-		 List<Model> models=new ArrayList<>();
-	     if(Character.isDigit(data.charAt(0)))
-	     {
-	    models=Arrays.asList(new Model("Matricule", data));	
-	     }
+	public ResponseEntity<ByteArrayResource> getItemReport(@PathVariable String type, @PathVariable String data) {
+		byte[] reportContent;
+		List<Model> models = findDatas(data);
+		
 		switch (type) {
-		case "Sub" -> reportContent = ReportUtil.getItemReport(models, "pdf","classpath:reports/report.jrxml","report.jasper");
-		case "Select" -> reportContent = ReportUtil.getItemReport(models, "pdf","classpath:reports/report-person.jrxml","report-person.jasper");
+		case "Sub" -> reportContent = ReportUtil.getItemReport(models, "pdf", "classpath:reports/report.jrxml",
+				"report.jasper");
+		case "Select" -> reportContent = ReportUtil.getItemReport(models, "pdf",
+				"classpath:reports/report-person.jrxml", "report-person.jasper");
 		default -> throw new RuntimeException("Unknown report format");
 		}
 		ByteArrayResource resource = new ByteArrayResource(reportContent);
@@ -70,6 +65,24 @@ public class RestApiController {
 						ContentDisposition.attachment().filename("report.pdf").build().toString())
 				.body(resource);
 	}
+	
+	
+	private List<Model> findDatas(String data)
+	{
+		List<Model> models = new ArrayList<>();
+		int index =0;
+		if (Character.isDigit(data.charAt(0))) {
+			models = Arrays.asList(new Model("Matricule", data));
+		} else {
+			List<String> lists = Arrays.stream(Arrays.stream(data.split(" ")).map(String::trim).toArray(String[]::new))
+					.toList(); 
+			for (String d : lists) {
+				models.add(new Model("liste"+index, d));
+				index++;
+			}
 
+		}
+		return models;
+	}
 
 }
