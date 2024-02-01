@@ -8,7 +8,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.demo.angular.rest.rest.util.CreateExcel;
@@ -32,60 +35,33 @@ import net.sf.jasperreports.engine.JasperExportManager;
 @CrossOrigin(origins = "*")
 public class RestApiController {
 
-	private static final String FROMAT = "dd/MM/yyyy";
 
-	private final Model model1 = new Model("date1", LocalDate.now().format(DateTimeFormatter.ofPattern(FROMAT)));
-	private final Model model2 = new Model("date2",
-			LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern(FROMAT)));
-	private final Model model3 = new Model("date3",
-			LocalDate.now().plusDays(2).format(DateTimeFormatter.ofPattern(FROMAT)));
 
-	@GetMapping(value = "/date")
-	public Model findData() {
-		return model1;
-
-	}
-
-	@GetMapping("/all/{type}")
-	public List<?> findAll(@PathVariable String type) {
-		List<?> data = null;
-		switch (type) {
-		case "Action":
-			data = Arrays.asList(model1, model2, model3);
-			break;
-		case "Select":
-			data = Arrays.asList(new Person("SADIK", "Mohamed"), new Person("Golaire", "Thomas"));
-			break;
-		case "Agregation":
-			data = Arrays.asList(new Adresse("Chaussée de Louvain", 214L, "Woluwe Saint Lambet"),
-					new Adresse("Chaussée de la Hulpe", 177L, "Watermael-Boitsfort"));
-			break;
-		default:
-			data = new ArrayList<>();
-			break;
-		}
-		return data;
-
-	}
-
-	@GetMapping("/download/{type}")
-	public ResponseEntity<InputStreamResource> createAndDeliverFile(@PathVariable String type) throws IOException {
-		List<?> list = findList(type);
-		File file = CreateExcel.createFile("demoExcel.xlsx", list);
+	@GetMapping("/excel/{type}/{data}")
+	public ResponseEntity<InputStreamResource> createAndDeliverFile(@PathVariable String type,@PathVariable String data) throws IOException {
+		 List<Model> models=new ArrayList<>();
+	     if(Character.isDigit(data.charAt(0)))
+	     {
+	    models=Arrays.asList(new Model("Matricule", data));	
+	     }
+		File file = CreateExcel.createFile("demoExcel.xlsx", models);
 		ByteArrayInputStream in = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
 		return ResponseEntity.ok().contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
 				.header("Content-Disposition", "attachment; filename=models.xlsx").body(new InputStreamResource(in));
 
 	}
 
-	@GetMapping("/pdf/{type}")
-	public ResponseEntity<ByteArrayResource> getItemReport(@PathVariable String type) {
-		List<Model> models = Arrays.asList(model1, model2, model3);		
-		List<Person> persons = Arrays.asList(new Person("SADIK", "Mohamed"), new Person("Golaire", "Thomas"));
-		byte[] reportContent;
+	@GetMapping("/pdf/{type}/{data}")
+	public ResponseEntity<ByteArrayResource> getItemReport(@PathVariable String type,@PathVariable String data) {
+		 byte[] reportContent;
+		 List<Model> models=new ArrayList<>();
+	     if(Character.isDigit(data.charAt(0)))
+	     {
+	    models=Arrays.asList(new Model("Matricule", data));	
+	     }
 		switch (type) {
-		case "Action" -> reportContent = ReportUtil.getItemReport(models, "pdf","classpath:reports/report.jrxml","report.jasper");
-		case "Select" -> reportContent = ReportUtil.getItemReport(persons, "pdf","classpath:reports/report-person.jrxml","report-person.jasper");
+		case "Sub" -> reportContent = ReportUtil.getItemReport(models, "pdf","classpath:reports/report.jrxml","report.jasper");
+		case "Select" -> reportContent = ReportUtil.getItemReport(models, "pdf","classpath:reports/report-person.jrxml","report-person.jasper");
 		default -> throw new RuntimeException("Unknown report format");
 		}
 		ByteArrayResource resource = new ByteArrayResource(reportContent);
@@ -95,24 +71,5 @@ public class RestApiController {
 				.body(resource);
 	}
 
-	private List<?> findList(String type) {
-		List<?> data = null;
-		switch (type) {
-		case "Action":
-			data = Arrays.asList(model1, model2, model3);
-			break;
-		case "Select":
-			data = Arrays.asList(new Person("SADIK", "Mohamed"), new Person("Golaire", "Thomas"));
-			break;
-		case "Agregation":
-			data = Arrays.asList(new Adresse("Chaussée de Louvain", 214L, "Woluwe Saint Lambet"),
-					new Adresse("Chaussée de la Hulpe", 177L, "Watermael-Boitsfort"));
-			break;
-		default:
-			data = new ArrayList<>();
-			break;
-		}
-		return data;
-	}
 
 }
